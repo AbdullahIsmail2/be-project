@@ -87,17 +87,20 @@ describe("get requests", () => {
 				});
 		});
 	});
-
 	describe("/api/articles", () => {
-		it("returns an array of article objects, each of which should have the following properties: author, title, article_id, topic, created_at, votes, article_img_url, comment_count", () => {
+		it(`returns an array of article objects, each of which should have the following properties: author, title, article_id, topic, created_at, votes, article_img_url, comment_count. 
+			
+		-- the articles should be sorted by date in descending order.
+		-- there should not be a body property present on any of the article objects.`, () => {
 			return request(app)
 				.get("/api/articles")
 				.expect(200)
 				.then((response) => {
 					const articles = response.body.articles;
-					expect(Array.isArray(articles)).toBe(true)
-					expect(articles.length).toBeGreaterThan(0)
+					expect(Array.isArray(articles)).toBe(true);
+					expect(articles.length).toBeGreaterThan(0);
 					articles.forEach((article) => {
+						expect(article.hasOwnProperty("body")).toBe(false);
 						expect(article).toEqual({
 							article_id: expect.any(Number),
 							author: expect.any(String),
@@ -106,9 +109,41 @@ describe("get requests", () => {
 							created_at: expect.any(String),
 							votes: expect.any(Number),
 							article_img_url: expect.any(String),
+							comment_count: expect.any(Number),
 						});
 					});
 				});
 		});
 	});
+	describe("/api/articles/:article_id/comments", () => {
+		it("Responds with an array of comments for the given article_id of which each comment should have the following properties: comment_id, votes, created_at, author, body,article_id", () => {
+			return request(app)
+				.get("/api/articles/1/comments")
+				.expect(200)
+				.then((response) => {
+					response.body.forEach((comment) => {
+						expect(comment).toEqual({
+							comment_id: expect.any(Number),
+							body: expect.any(String),
+							article_id: expect.any(Number),
+							author: expect.any(String),
+							votes: expect.any(Number),
+							created_at: expect.any(String),
+						});
+					});
+				});
+		});
+
+		it.only("404: Not Found if article_id passed in has no comments", () => {
+			return request(app)
+				.get("/api/articles/2/comments")
+				.expect(404)
+				.then((response) => {
+					console.log(response.body);
+					expect(response.body.msg).toBe("this article has no comments");
+				});
+		});
+	});
 });
+
+
