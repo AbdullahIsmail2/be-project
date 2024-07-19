@@ -230,3 +230,60 @@ describe("POST requests", () => {
 		});
 	});
 });
+
+describe("PATCH requests", () => {
+	describe("/api/articles/:article_id", () => {
+		it.only("should update the article votes and respond with the updated article", () => {
+			const obj = { inc_votes: 1 };
+			return request(app)
+				.patch("/api/articles/1")
+				.send(obj)
+				.expect(200)
+				.then((response) => {
+					expect(response.body.article).toEqual({
+						article_id: 1,
+						author: expect.any(String),
+						title: expect.any(String),
+						topic: expect.any(String),
+						created_at: expect.any(String),
+						votes: 101,
+						body: "I find this existence challenging",
+						article_img_url: expect.any(String),
+					});
+				});
+		});
+
+		it.only("400: If inc_votes is missing, responds with an error", () => {
+			const obj = { decr_votes: 1 };
+			return request(app)
+				.patch("/api/articles/1")
+				.send(obj)
+				.expect(400)
+				.then((response) => {
+					expect(response.body.msg).toBe("Bad Request");
+				});
+		});
+
+		it.only("404: Responds with an error when posting to a non-existent article", () => {
+			const obj = { decr_votes: 1 };
+			return request(app)
+				.patch("/api/articles/1000")
+				.send(obj)
+				.expect(404)
+				.then((response) => {
+					expect(response.body.msg).toBe("article with id 1000 does not exist");
+				});
+		});
+
+		it.only("400: Responds with an error when using an invalid article ID", () => {
+			const obj = { inc_votes: 1 };
+			return request(app)
+				.patch("/api/articles/one-thousand")
+				.send(obj)
+				.expect(400)
+				.then((response) => {
+					expect(response.body.msg).toBe("Bad Request");
+				});
+		});
+	});
+});
