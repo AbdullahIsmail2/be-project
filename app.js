@@ -1,10 +1,13 @@
 const express = require("express");
 const app = express();
-const getTopics = require("./controllers/getTopics");
-const getEndpoints = require("./controllers/getEndpoints");
-const getArticleById = require("./controllers/getArticleById");
-const getArticles = require("./controllers/getArticles");
-const getCommentsByArticleId = require("./controllers/getCommentsByArticleId");
+const getTopics = require("./controllers/GET/getTopics");
+const getEndpoints = require("./controllers/GET/getEndpoints");
+const getArticleById = require("./controllers/GET/getArticleById");
+const getArticles = require("./controllers/GET/getArticles");
+const getCommentsByArticleId = require("./controllers/GET/getCommentsByArticleId");
+const postComment = require("./controllers/POST/postComment");
+
+app.use(express.json());
 
 app.get("/api", getEndpoints);
 app.get("/api/topics", getTopics);
@@ -12,16 +15,22 @@ app.get("/api/articles/:article_id", getArticleById);
 app.get("/api/articles", getArticles);
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 
-app.use("/api/topics", (req, res, next) => {
-	res.status(404).send({ msg: "Error404: Route Not Found" });
+app.post("/api/articles/:article_id/comments", postComment);
+
+app.all("*", (req, res) => {
+	res.status(404).send({ msg: "Route Not Found" });
 });
 
-app.use("/api/articles/:article_id", (req, res, next) => {
-	res.status(400).send({ msg: "Bad Request" });
+app.use((err, req, res, next) => {
+	if (err.status && err.msg) {
+		res.status(err.status).send({ msg: err.msg });
+	} else next(err);
 });
 
-app.use("/api/articles", (req, res, next) => {
-	res.status(400).send({ msg: "Bad request" });
+app.use((err, req, res, next) => {
+	if (err.code === "22P02" || err.code === "23502") {
+		res.status(400).send({ msg: "Bad Request" });
+	} else next(err);
 });
 
 module.exports = app;

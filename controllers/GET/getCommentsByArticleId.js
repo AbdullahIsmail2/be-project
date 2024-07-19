@@ -1,11 +1,10 @@
-const getCommentsByArticleIdModel = require("../models/getCommentsByArticleId");
+const getCommentsByArticleIdModel = require("../../models/getCommentsByArticleId");
 
 const getCommentsByArticleId = (req, res, next) => {
 	const { article_id } = req.params;
 	getCommentsByArticleIdModel(article_id)
-		.then((response) => {
-			console.log(response);
-			res.status(200).send(response);
+		.then((comments) => {
+			res.status(200).send({ comments });
 		})
 		.catch((err) => next(err));
 };
