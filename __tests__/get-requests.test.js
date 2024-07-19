@@ -44,7 +44,7 @@ describe("get requests", () => {
 				.get("/api/postststststs")
 				.expect(404)
 				.then((response) => {
-					expect(response.body.msg).toBe("Error404: Route Not Found");
+					expect(response.body.msg).toBe("Route Not Found");
 				});
 		});
 	});
@@ -73,7 +73,7 @@ describe("get requests", () => {
 				.get("/api/articles/999")
 				.expect(404)
 				.then((response) => {
-					expect(response.body.msg).toBe("article with id 999  does not exist");
+					expect(response.body.msg).toBe("article with id 999 does not exist");
 				});
 		});
 
@@ -121,7 +121,7 @@ describe("get requests", () => {
 				.get("/api/articles/1/comments")
 				.expect(200)
 				.then((response) => {
-					response.body.forEach((comment) => {
+					response.body.comments.forEach((comment) => {
 						expect(comment).toEqual({
 							comment_id: expect.any(Number),
 							body: expect.any(String),
@@ -134,16 +134,99 @@ describe("get requests", () => {
 				});
 		});
 
-		it.only("404: Not Found if article_id passed in has no comments", () => {
+		it("200: if article passed in has no comments returns empty array", () => {
 			return request(app)
-				.get("/api/articles/2/comments")
-				.expect(404)
+				.get("/api/articles/4/comments")
+				.expect(200)
 				.then((response) => {
 					console.log(response.body);
-					expect(response.body.msg).toBe("this article has no comments");
+					expect(response.body.comments).toEqual([]);
+				});
+		});
+
+		it("404: Responds with an error when article is non-existent ", () => {
+			return request(app)
+				.get("/api/articles/1000/comments")
+				.expect(404)
+				.then((response) => {
+					expect(response.body.msg).toBe("article with id 1000 does not exist");
+				});
+		});
+
+		it("400: Responds with an error when using an invalid article ID", () => {
+			return request(app)
+				.get("/api/articles/one-thousand/comments")
+				.expect(400)
+				.then((response) => {
+					expect(response.body.msg).toBe("Bad Request");
 				});
 		});
 	});
 });
 
+describe("POST requests", () => {
+	describe("/api/articles/:article_id/comments", () => {
+		it("201: Responds with the posted comment", () => {
+			const newComment = {
+				author: "icellusedkars",
+				body: "horrible",
+			};
+			return request(app)
+				.post("/api/articles/9/comments")
+				.send(newComment)
+				.expect(201)
+				.then((response) => {
+					const postedComment = response.body.comment;
+					expect(postedComment).toEqual({
+						comment_id: expect.any(Number),
+						body: "horrible",
+						article_id: 9,
+						author: "icellusedkars",
+						votes: 0,
+						created_at: expect.any(String),
+					});
+				});
+		});
 
+		it("400: If author/body is missing, responds with an error", () => {
+			const newComment = {
+				author: "icellusedkars",
+			};
+			return request(app)
+				.post("/api/articles/3/comments")
+				.send(newComment)
+				.expect(400)
+				.then((response) => {
+					expect(response.body.msg).toBe("Bad Request");
+				});
+		});
+
+		it("404: Responds with an error when posting to a non-existent article", () => {
+			const newComment = {
+				author: "icellusedkars",
+				body: "horrible",
+			};
+			return request(app)
+				.post("/api/articles/1000/comments")
+				.send(newComment)
+				.expect(404)
+				.then((response) => {
+					expect(response.body.msg).toBe("article with id 1000 does not exist");
+				});
+		});
+
+		it("400: Responds with an error when using an invalid article ID", () => {
+			const newComment = {
+				author: "icellusedkars",
+				body: "horrible",
+			};
+			return request(app)
+				.post("/api/articles/one-thousand/comments")
+				.send(newComment)
+				.expect(400)
+				.then((response) => {
+					expect(response.body.msg).toBe("Bad Request");
+				});
+		});
+	});
+});
