@@ -11,7 +11,7 @@ beforeEach(() => {
 afterAll(() => {
 	return db.end();
 });
-describe("get requests", () => {
+describe("GET requests", () => {
 	describe("/api", () => {
 		it("should provide a description of all other endpoints available", () => {
 			return request(app)
@@ -233,7 +233,7 @@ describe("POST requests", () => {
 
 describe("PATCH requests", () => {
 	describe("/api/articles/:article_id", () => {
-		it.only("should update the article votes and respond with the updated article", () => {
+		it("should update the article votes and respond with the updated article", () => {
 			const obj = { inc_votes: 1 };
 			return request(app)
 				.patch("/api/articles/1")
@@ -253,7 +253,7 @@ describe("PATCH requests", () => {
 				});
 		});
 
-		it.only("400: If inc_votes is missing, responds with an error", () => {
+		it("400: If inc_votes is missing, responds with an error", () => {
 			const obj = { decr_votes: 1 };
 			return request(app)
 				.patch("/api/articles/1")
@@ -264,7 +264,7 @@ describe("PATCH requests", () => {
 				});
 		});
 
-		it.only("404: Responds with an error when posting to a non-existent article", () => {
+		it("404: Responds with an error when posting to a non-existent article", () => {
 			const obj = { decr_votes: 1 };
 			return request(app)
 				.patch("/api/articles/1000")
@@ -275,11 +275,44 @@ describe("PATCH requests", () => {
 				});
 		});
 
-		it.only("400: Responds with an error when using an invalid article ID", () => {
+		it("400: Responds with an error when using an invalid article ID", () => {
 			const obj = { inc_votes: 1 };
 			return request(app)
 				.patch("/api/articles/one-thousand")
 				.send(obj)
+				.expect(400)
+				.then((response) => {
+					expect(response.body.msg).toBe("Bad Request");
+				});
+		});
+	});
+});
+
+describe("DELETE requests", () => {
+	describe("/api/comments/:comment_id", () => {
+		it("204: delete the given comment by comment_id, responds with no content", () => {
+			return request(app)
+				.delete("/api/comments/1")
+				.expect(204)
+				.then((response) => {
+					expect(response.body).toEqual({});
+				});
+		});
+
+		it("404: Responds with an error if comment does not exist", () => {
+			return request(app)
+				.delete("/api/comments/1000")
+				.expect(404)
+				.then((response) => {
+					expect(response.body.msg).toBe(
+						"comment with the id 1000 does not exist"
+					);
+				});
+		});
+
+		it("400: Responds with an error when using an invalid comment-id", () => {
+			return request(app)
+				.delete("/api/comments/one-thousand")
 				.expect(400)
 				.then((response) => {
 					expect(response.body.msg).toBe("Bad Request");

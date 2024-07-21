@@ -7,6 +7,7 @@ const getArticles = require("./controllers/GET/getArticles");
 const getCommentsByArticleId = require("./controllers/GET/getCommentsByArticleId");
 const postComment = require("./controllers/POST/postComment");
 const patchArticleVotes = require("./controllers/PATCH/patchArticleVotes");
+const deleteComment = require("./controllers/DELETE/deleteComment");
 
 app.use(express.json());
 
@@ -15,9 +16,12 @@ app.get("/api/topics", getTopics);
 app.get("/api/articles/:article_id", getArticleById);
 app.get("/api/articles", getArticles);
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
+
 app.post("/api/articles/:article_id/comments", postComment);
 
 app.patch("/api/articles/:article_id", patchArticleVotes);
+
+app.delete("/api/comments/:comment_id", deleteComment);
 
 app.all("*", (req, res) => {
 	res.status(404).send({ msg: "Route Not Found" });
