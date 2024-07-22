@@ -4,6 +4,7 @@ const db = require("../db/connection");
 const seed = require("../db/seeds/seed");
 const testData = require("../db/data/test-data/index");
 const endpointsData = require("../endpoints.json");
+const usersData = require("../db/data/test-data/users");
 
 beforeEach(() => {
 	return seed(testData);
@@ -159,6 +160,25 @@ describe("GET requests", () => {
 				.expect(400)
 				.then((response) => {
 					expect(response.body.msg).toBe("Bad Request");
+				});
+		});
+	});
+
+	describe.only("/api/users", () => {
+		it("200: Responds withan array of objects, each object should have the following properties: username, name, avatar_url", () => {
+			return request(app)
+				.get("/api/users")
+				.expect(200)
+				.then((response) => {
+					expect(response.body.users).toEqual(usersData);
+				});
+		});
+		test("should respond with 404 for an invalid route", () => {
+			return request(app)
+				.get("/api/userssss")
+				.expect(404)
+				.then((response) => {
+					expect(response.body.msg).toBe("Route Not Found");
 				});
 		});
 	});
