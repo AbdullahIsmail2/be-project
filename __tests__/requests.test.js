@@ -89,7 +89,7 @@ describe("GET requests", () => {
 		});
 	});
 	describe("/api/articles", () => {
-		it.only(`returns an array of article objects, each of which should have the following properties: author, title, article_id, topic, created_at, votes, article_img_url, comment_count. 
+		it(`returns an array of article objects, each of which should have the following properties: author, title, article_id, topic, created_at, votes, article_img_url, comment_count. 
 			
 		-- the articles should be sorted by date in descending order.
 		-- there should not be a body property present on any of the article objects.`, () => {
@@ -114,6 +114,98 @@ describe("GET requests", () => {
 						});
 					});
 				});
+		});
+
+		describe("/api/articles?=", () => {
+			test("should return an array of articles sorted by id in descending order", () => {
+				return request(app)
+					.get("/api/articles?sort_by=article_id&order_by=DESC")
+					.expect(200)
+					.then(({ body: { articles } }) => {
+						expect(articles).toBeSortedBy("article_id", { descending: true });
+					});
+			});
+			test("should return an array of articles sorted by votes should default to descending if order_by is not provided", () => {
+				return request(app)
+					.get("/api/articles?sort_by=votes")
+					.expect(200)
+					.then(({ body: { articles } }) => {
+						expect(articles).toBeSortedBy("votes", { descending: true });
+					});
+			});
+			test("should return an array of articles in asecending order and default to created_at if sort_by is not provided", () => {
+				return request(app)
+					.get("/api/articles?&order_by=ASC")
+					.expect(200)
+					.then(({ body: { articles } }) => {
+						expect(articles).toBeSortedBy("created_at", { ascending: true });
+					});
+			});
+			test("should return a status of 400 and a message of can't sort by this query if sort_by query is not one of the column names in the articles table", () => {
+				return request(app)
+					.get("/api/articles?sort_by=1")
+					.expect(400)
+					.then(({ body: { msg } }) => {
+						expect(msg).toBe("Invalid sort_by query");
+					});
+			});
+			test("should return a status of 400 and a message of can't order by this query", () => {
+				return request(app)
+					.get("/api/articles?order_by=1")
+					.expect(400)
+					.then(({ body: { msg } }) => {
+						expect(msg).toBe("Invalid order_by query");
+					});
+			});
+		});
+		describe.only("/api/articles?topic=", () => {
+			test("should return an array of articles filtered by topic", () => {
+				return request(app)
+					.get("/api/articles?topic=cats")
+					.expect(200)
+					.then(({ body: { articles } }) => {
+						expect(articles.length).toBeGreaterThan(0);
+						articles.forEach((article) => {
+							expect(article).toMatchObject({
+								topic: "cats",
+							});
+						});
+					});
+			});
+			test("should return all articles if no topic is provided", () => {
+				return request(app)
+					.get("/api/articles?")
+					.expect(200)
+					.then(({ body: { articles } }) => {
+						expect(articles.length).toBeGreaterThan(0);
+						articles.forEach((article) => {
+							expect(article).toEqual({
+								article_id: expect.any(Number),
+								title: expect.any(String),
+								topic: expect.any(String),
+								author: expect.any(String),
+								created_at: expect.any(String),
+								votes: expect.any(Number),
+								article_img_url: expect.any(String),
+								comment_count: expect.any(String),
+							});
+						});
+					});
+			});
+			test("should return an array of articles filtered by topic and sorted by title in ascending order", () => {
+				return request(app)
+					.get("/api/articles?topic=mitch&sort_by=title&order_by=ASC")
+					.expect(200)
+					.then(({ body: { articles } }) => {
+						expect(articles.length).toBeGreaterThan(0);
+						expect(articles).toBeSortedBy("title", { ascending: true });
+						articles.forEach((article) => {
+							expect(article).toMatchObject({
+								topic: "mitch",
+							});
+						});
+					});
+			});
 		});
 	});
 	describe("/api/articles/:article_id/comments", () => {
