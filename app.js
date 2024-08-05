@@ -10,6 +10,9 @@ const patchArticleVotes = require("./controllers/PATCH/patchArticleVotes");
 const deleteComment = require("./controllers/DELETE/deleteComment");
 const getUsers = require("./controllers/GET/getUsers");
 
+const cors = require('cors');
+
+app.use(cors());
 app.use(express.json());
 
 app.get("/api", getEndpoints);

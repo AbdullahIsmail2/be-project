@@ -89,7 +89,7 @@ describe("GET requests", () => {
 		});
 	});
 	describe("/api/articles", () => {
-		it(`returns an array of article objects, each of which should have the following properties: author, title, article_id, topic, created_at, votes, article_img_url, comment_count. 
+		it.only(`returns an array of article objects, each of which should have the following properties: author, title, article_id, topic, created_at, votes, article_img_url, comment_count. 
 			
 		-- the articles should be sorted by date in descending order.
 		-- there should not be a body property present on any of the article objects.`, () => {
@@ -164,7 +164,7 @@ describe("GET requests", () => {
 		});
 	});
 
-	describe.only("/api/users", () => {
+	describe("/api/users", () => {
 		it("200: Responds withan array of objects, each object should have the following properties: username, name, avatar_url", () => {
 			return request(app)
 				.get("/api/users")
